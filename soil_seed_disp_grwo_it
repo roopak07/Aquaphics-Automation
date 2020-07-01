@@ -1,0 +1,86 @@
+ #include <Servo.h>
+Servo servo_obj; // servo object for fish tank
+/* Motors */
+#define m1 2 // motor 1
+#define m2 3 // Motor 2
+#define servo 4 // servo for sand dispencer
+#define gearm 5// gear motor for seed dispencer
+#define ultras 6 // ultra sonic for soil dispencer
+#define ultragm 7 // ultra sonic for seed dispencer
+
+int t,d,ds,dg; //ds- distance at servo, dg- distance at gear motor
+
+void mstop() // motors stop
+{
+  digitalWrite(m1,LOW);
+  digitalWrite(m2,LOW);
+  delay(1000);
+}
+void mf() // motor forward
+{
+  digitalWrite(m1,HIGH);
+  digitalWrite(m2,HIGH);
+}
+void sangle()
+{
+   servo_obj.write(45);
+   delay(1000);
+   servo_obj.write(0);
+   delay(200);
+}
+int disatnce(int x)
+{
+  d=0,t=0;
+  pinMode(x,OUTPUT);
+  digitalWrite(x,LOW);
+  delayMicroseconds(2);
+  digitalWrite(x,HIGH);
+  delayMicroseconds(10);
+  digitalWrite(x,LOW);
+  pinMode(x,INPUT);
+  t=pulseIn(x,HIGH);
+  d=0.034*t/2;
+  Serial.println("distance:"+String(d)+" Cm");
+  return d;
+}
+void setup() 
+{
+  Serial.begin(9600);
+  pinMode(m1,OUTPUT);
+  pinMode(m2,OUTPUT);
+  pinMode(gearm,OUTPUT);
+  servo_obj.attach(servo);
+  servo_obj.write(0); // initial angle zero
+}
+void loop() 
+{
+  ds=disatnce(ultras);
+  Serial.println("distance at soil:"+String(ds)+" Cm");
+  delay(100);
+  dg=disatnce(ultragm);
+  Serial.println("distance at seed:"+String(dg)+" Cm");
+  delay(100);
+  if(ds <= 3)
+  {
+    
+   mstop();
+   sangle();
+   delay(1000); // wait for 1 sec
+   mf();
+   delay(2000); // motors forward for 2 seconds
+  }
+  else if(dg <= 3)
+  {
+   mstop();
+   digitalWrite(gearm,HIGH);
+   delay(1000);
+   digitalWrite(gearm,LOW);
+   delay(1000); // wait for 1 sec
+   mf();
+   delay(2000); // motors forward for 2 seconds
+  }
+  else
+  {
+    mf();
+  }
+}
